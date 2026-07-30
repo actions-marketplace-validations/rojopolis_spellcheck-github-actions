@@ -5,6 +5,14 @@ on:
   # REF: https://stackoverflow.com/questions/58933155/manual-workflow-triggers-in-github-actions
   workflow_dispatch:
   push:
+    paths:
+      - '**/*.md'
+      - 'spellcheck.yaml'
+      - 'wordlist.txt'
+      - '.github/workflows/spelling_action.yml'
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -12,19 +20,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      # The checkout step
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      - uses: rojopolis/spellcheck-github-actions@0bf4b2f91efa259b52c202b09b0c3845c524ff36 # ratchet:rojopolis/spellcheck-github-actions@v0
-        name: Spellcheck
+      - name: Spellcheck
+        uses: rojopolis/spellcheck-github-actions@e619e00ca22f01ade9d73048dcd6518bedc552f2 # v0.63.0
         with:
           source_files: README.md CHANGELOG.md
           task_name: Markdown
           output_file: spellcheck-output.txt
 
-      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # ratchet:actions/upload-artifact@v4
+      - name: Archive spellcheck output
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: '!cancelled()'
-        name: Archive spellcheck output
         with:
           name: Spellcheck artifact
           path: spellcheck-output.txt

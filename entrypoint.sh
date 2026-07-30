@@ -32,6 +32,7 @@ echo "----------------------------------------------------------------"
 SINGLE="'"
 DOUBLE='"'
 SPLIT=false
+SOURCES_LIST=()
 
 if [ -n "$INPUT_SOURCE_FILES" ]; then
 
@@ -82,7 +83,7 @@ if [ -n "$INPUT_SOURCE_FILES" ]; then
                 continue
             fi
 
-            SOURCES_LIST="$SOURCES_LIST --source $FILE"
+            SOURCES_LIST+=("--source" "$FILE")
             echo "Checking quoted file >$FILE<"
 
         done
@@ -102,19 +103,20 @@ if [ -n "$INPUT_SOURCE_FILES" ]; then
                 echo "Skipping file >$FILE<"
                 continue
             fi
-            SOURCES_LIST="$SOURCES_LIST --source $FILE"
+            SOURCES_LIST+=("--source" "$FILE")
             echo "Checking file >$FILE<"
         done
     fi
 
-    echo "Checking files specification in sources_list as: >$SOURCES_LIST<"
+    echo "Checking files specification in sources_list as: >${SOURCES_LIST[*]}<"
 
 else
     echo "Checking files matching specification outlined in: >$SPELLCHECK_CONFIG_FILE<"
 fi
 
 if [ -n "$INPUT_TASK_NAME" ]; then
-    TASK_NAME="--name $INPUT_TASK_NAME"
+    echo "INPUT_TASK_NAME set to: >$INPUT_TASK_NAME<, using this as task name for pyspelling via --name parameter"
+    TASK_NAME="$INPUT_TASK_NAME"
 fi
 
 SPELL_CHECKER='aspell'
@@ -141,29 +143,31 @@ if [ -n "$INPUT_SKIP_DICT_COMPILE" ]; then
     fi
 fi
 
-COMMAND="pyspelling --verbose"
+COMMAND=("pyspelling" "--verbose")
 if [ "$SKIP_DICT_COMPILE" = "false" ]; then
-    COMMAND="$COMMAND --skip-dict-compile"
+    COMMAND+=("--skip-dict-compile")
+fi
+if [ -n "$TASK_NAME" ]; then
+    COMMAND+=("--name" "$TASK_NAME")
 fi
 
 EXITCODE=0
 
-# shellcheck disable=SC2086
 # Command line template
-# pyspelling --verbose --config "$SPELLCHECK_CONFIG_FILE" --spellchecker "$SPELL_CHECKER" --name $TASK_NAME --source $SOURCES_LIST
+# pyspelling --verbose --config "$SPELLCHECK_CONFIG_FILE" --spellchecker "$SPELL_CHECKER" --name "$TASK_NAME" --source "FILE 1" --source "FILE 2" --source "FILE N"
 # source and name are included in the parameters used
 
-if [ -n "$INPUT_OUTPUT_FILE" ] && [ -n "$SOURCES_LIST" ]; then
-    $COMMAND --config "$SPELLCHECK_CONFIG_FILE" --spellchecker "$SPELL_CHECKER" $TASK_NAME $SOURCES_LIST | tee "$INPUT_OUTPUT_FILE"
+if [ -n "$INPUT_OUTPUT_FILE" ] && [ "${#SOURCES_LIST[@]}" -gt 0 ]; then
+    "${COMMAND[@]}" --config "$SPELLCHECK_CONFIG_FILE" --spellchecker "$SPELL_CHECKER" "${SOURCES_LIST[@]}" | tee "$INPUT_OUTPUT_FILE"
     EXITCODE=${PIPESTATUS[0]}
 elif [ -n "$INPUT_OUTPUT_FILE" ]; then
-    $COMMAND --config "$SPELLCHECK_CONFIG_FILE" --spellchecker "$SPELL_CHECKER" $TASK_NAME | tee "$INPUT_OUTPUT_FILE"
+    "${COMMAND[@]}" --config "$SPELLCHECK_CONFIG_FILE" --spellchecker "$SPELL_CHECKER" | tee "$INPUT_OUTPUT_FILE"
     EXITCODE=${PIPESTATUS[0]}
-elif [ -n "$SOURCES_LIST" ]; then
-    $COMMAND --config "$SPELLCHECK_CONFIG_FILE" --spellchecker "$SPELL_CHECKER" $TASK_NAME $SOURCES_LIST
+elif [ "${#SOURCES_LIST[@]}" -gt 0 ]; then
+    "${COMMAND[@]}" --config "$SPELLCHECK_CONFIG_FILE" --spellchecker "$SPELL_CHECKER" "${SOURCES_LIST[@]}"
     EXITCODE=$?
 elif [ -z "$INPUT_SOURCE_FILES" ]; then
-    $COMMAND --config "$SPELLCHECK_CONFIG_FILE" --spellchecker "$SPELL_CHECKER" $TASK_NAME
+    "${COMMAND[@]}" --config "$SPELLCHECK_CONFIG_FILE" --spellchecker "$SPELL_CHECKER"
     EXITCODE=$?
 else
     echo "No files to check, exiting"
@@ -173,13 +177,9 @@ fi
 echo "----------------------------------------------------------------"
 
 if [ -n "$GITHUB_ACTIONS" ]; then
-    test "$EXITCODE" -gt 1 && echo "::error title=Spelling check::Spelling check action failed, please check diagnostics";
-
-    test "$EXITCODE" -eq 1 && echo "::error title=Spelling errors::Files in repository contain spelling errors";
+    test "$EXITCODE" -gt 0 && echo "::error title=Error::Files in repository contain spelling errors or or spelling check action failed, please check diagnostics";
 else
-    test "$EXITCODE" -gt 1 && echo "Spelling check action failed, please check diagnostics";
-
-    test "$EXITCODE" -eq 1 && echo "Files in repository contain spelling errors";
+    test "$EXITCODE" -gt 0 && echo "Files in repository contain spelling errors or spelling check action failed, please check diagnostics";
 fi
 
 exit "$EXITCODE"

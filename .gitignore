@@ -3,3 +3,5 @@ dictionary.dic
 .wordlist.txt
 prototypes/
 spellcheck-github-actions.code-workspace
+.DS_Store
+.nvmrc

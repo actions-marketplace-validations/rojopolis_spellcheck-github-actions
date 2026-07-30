@@ -1,5 +1,37 @@
 # Change Log for spellcheck-github-actions
 
+## 0.63.0, 2026-07-01, maintenance release, update not required
+
+- Docker based image updated for Python 3.14.6 slim trixie via PR [#364](https://github.com/rojopolis/spellcheck-github-actions/pull/364) from Dependabot.
+
+## 0.62.0, 2026-06-19, security release, update recommended
+
+- Bumped `lxml` from 5.3.0 to 5.4.0 to address known CVEs via PR [#357](https://github.com/rojopolis/spellcheck-github-actions/pull/357).
+
+- Bumped `pymdown-extensions` to patched version 10.21.3 via PR [#358](https://github.com/rojopolis/spellcheck-github-actions/pull/358).
+
+- Bumped `Markdown` from 3.7 to 3.8.1 to patched version via PR [#359](https://github.com/rojopolis/spellcheck-github-actions/pull/359).
+
+- Cleaned up GitHub Actions workflows using `zizmor` and removed ratchet annotations via PR [#355](https://github.com/rojopolis/spellcheck-github-actions/pull/355) and PR [#356](https://github.com/rojopolis/spellcheck-github-actions/pull/356).
+
+- Clarified examples in README.
+
+## 0.61.0, 2026-06-14, minor feature release, update not required
+
+- Docker based image updated for Python 3.14.5 slim trixie via PR [#344](https://github.com/rojopolis/spellcheck-github-actions/pull/344) from Dependabot.
+
+## 0.60, 2026-03-14, minor feature release, update not required
+
+- Docker based image updated for Python 3.14.3 slim trixie via PR [#325](https://github.com/rojopolis/spellcheck-github-actions/pull/325) from Dependabot.
+
+- Cleaned up the error messaging, to address issue [#328](https://github.com/rojopolis/spellcheck-github-actions/issues/328) from @akohout-hai, the error message is now more correct, but not improved in general
+
+## 0.59.0, 2026-03-02, feature release, update recommended
+
+- Improvements have been added to the docker entrypoint, based on a PR from @akohout-hai which fixes an issue with handling of spaces in files names and directories, see PR [#322](https://github.com/rojopolis/spellcheck-github-actions/pull/322) for details. This is his first contribution to the project and I want to thank him for his contribution, which is highly appreciated.
+
+- Docker based image updated to Python 3.14.3 slim trixie via PR [#320](https://github.com/rojopolis/spellcheck-github-actions/pull/320) from Dependabot.
+
 ## 0.58.0, 2026-01-20, security release, update not required
 
 - A minor security issue in the dependency: pymdown-extensions, which is used by the core component PySpelling
